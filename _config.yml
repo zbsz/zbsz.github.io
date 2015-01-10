@@ -1,6 +1,6 @@
 # This is the default format. 
 # For more see: http://jekyllrb.com/docs/permalinks/
-permalink: /:categories/:year/:month/:day/:title 
+permalink: /:year/:month/:day/:title
 
 exclude: [".rvmrc", ".rbenv-version", "README.md", "Rakefile", "changelog.md"]
 highlighter: pygments
@@ -8,8 +8,8 @@ highlighter: pygments
 # Themes are encouraged to use these universal variables 
 # so be sure to set them if your theme uses them.
 #
-title : geteit blog
-tagline: my coding thoughts
+title : zbsz's blog
+tagline: coding adventures
 author :
   name : Zbigniew Szymanski
   email : zbigniew@geteit.com
@@ -25,7 +25,12 @@ author :
 #
 production_url : http://zbsz.github.io
 
-excerpt_separator: <!--more-->  # you can specify your own separator, of course.
+excerpt_separator: "\n\n"  # you can specify your own separator, of course.
+
+markdown: redcarpet
+
+kramdown:
+  input: GFM
 
 # All Jekyll-Bootstrap specific configurations are namespaced into this hash
 #
@@ -100,7 +105,7 @@ JB :
   analytics :
     provider : google 
     google : 
-        tracking_id : 'UA-123-12'
+        tracking_id : 'UA-348470-11'
     getclicky :
       site_id : 
     mixpanel :
