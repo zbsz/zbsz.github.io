@@ -71,6 +71,14 @@ h2 a:hover {
 	color:#FFF;
 }
 
+code {
+    font-family: Menlo, Monaco, "Courier New", monospace;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
 /* syntax highlighting */
 .highlight pre code * {
     white-space: nowrap;
