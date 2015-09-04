@@ -71,11 +71,12 @@ But this comparison can be misleading, with signals, we don't really care about 
 are mostly interested in final state, after all changes are applied. This difference has significant implications in how signals can be used compared to event streams.
 
 ---
-### Signal Lifecycle
+## EventContext
 
-<br/><br/>
+<br/>
 - corresponds to lifecycle context
   - global
+  - service
   - activity
   - fragment
   - view
@@ -111,9 +112,9 @@ class: center, middle
 --
 
 - Display current state, refresh on every change.
-- Update when chapter is changed.
-- Update when book info is changed (number of chapters).
-- React to player state changes.
+  - Update when chapter is changed.
+  - Update when book info is changed (number of chapters).
+  - React to player state changes.
 - What if no chapter is selected?
 - What if book info is not loaded yet?
 
