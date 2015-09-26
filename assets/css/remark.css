@@ -152,3 +152,7 @@ blockquote {
 blockquote p {
   display: inline;
 }
+
+.bg-left-bottom {
+    background-position: left bottom;
+}
