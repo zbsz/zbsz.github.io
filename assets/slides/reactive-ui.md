@@ -1,8 +1,14 @@
 class: middle
 # Reactive UI on Android with Scala #
 
-???
-## October 17 ##
+<br/><br/><br/><br/><br/>
+<img src="/assets/img/signals/wire.png" style="float: left; width: 96px; margin-right: 20px;"/>
+<br/>
+*Zbigniew Szymanski*</br>
+[http://zbsz.github.io](http://zbsz.github.io)</br></br>
+
+
+.footnote[.right[2015.mobilization.pl]]
 
 ---
 ## It's not about: ##
@@ -17,67 +23,128 @@ class: middle
 ## But ... ##
 
 - creating reactive UI
-  - using techniques enabled by Scala
+- using techniques enabled by Scala - Signals
+- introduce Signals
+- UI case study
 
 ---
-class: bg-left-bottom
-background-image: url(/assets/img/signals/signals.png)
-
 ## Signals
 
-<br/><br/>
+<br/><br/><br/>
+<center><img src="/assets/img/signals/signals.png" /></center>
+
+???
+- value changing over time
 - idea borrowed from FRP
 - adapted to Android development
 
 ---
-## Simplified Signal
+background-image: url(/assets/img/signals/observable.gif)
+class: bg-left-top
 
-<br/><br/><br/> 
+## Observable
+
+<br/><br/><br/><br/> 
+<br/><br/><br/><br/> 
+
+
 ```scala
 trait Signal[T] {
+  
   def set(value: T): Unit
+  
   def subscribe(f: T => Unit): Unit
+  
 }
 ```
-
-- value changing over time
-- subscribers are notified on changes
 
 ???
 In general, Signal is just a value that changes over time, and provides change notifications, a bit like `Observable`.
 Very simplified signal interface provides methods to set and observe current value, it could look something like this:
 
 ---
-## Cell in a spreadsheet
+## Cell in spreadsheet
 
-<br/><br/><br/>
-<img src="/assets/img/signals/cells.png" style="width: 750px" />
+<br/><br/>
+<center><img src="/assets/img/signals/cells.png" style="width: 750px" /></center>
 
+
+???
 - signals are composable
-
-???
-Signals are much more then just simple observable, they are composable.
-In this regard, signals can be compared to cells in a spreadsheet, where value of one cell can be defined as a function taking inputs from other cells.
+- like cells in spreadsheet
 
 ---
-## Signals and Reactive Streams
+## Signal != Event Stream
+<br/>
+<center><img src="/assets/img/signals/stream.png" /></center>
+
+- signal contains a value
+- can skip changes
+- can report same state multiple times
+- focus on final state, not intermediate changes
+
+
+---
+class: middle
+# Signal Properties
+
+
+---
+## Empty
 
 <br/><br/><br/>
-- somewhat similar to RxJava
-- signal -> event stream
-- event stream -> signal
-- stream -> signal -> stream !
-- focus on final state, not change events
+<center><img src="/assets/img/signals/empty1.png" /></center>
 
 ???
-
-Signals may seem very similar to [Reactive Extensions](http://reactivex.io/), signal can be viewed as a stream of change events, 
-and event stream could be converted into signal using `scan` operator.
-But this comparison can be misleading, with signals, we don't really care about the events, we are only interested in current state. Actually, we 
-are mostly interested in final state, after all changes are applied. This difference has significant implications in how signals can be used compared to event streams.
+- signals can be empty
+- usually means that state is not yet loaded/computes
 
 ---
-## EventContext
+## Non-contiguous
+
+<br/><br/><br/>
+<center><img src="/assets/img/signals/empty2.png" /></center>
+
+???
+- can even have holes / disappear
+
+---
+## Skipping states
+
+<br/><br/><br/>
+<center><img src="/assets/img/signals/skipping.png" /></center>
+
+???
+- signals can skip intermediate states
+- can even have holes
+
+---
+## Lazy
+
+<br/><br/><br/>
+<center><img src="/assets/img/signals/lazy.jpg" /></center>
+
+???
+- signals are lazy
+- not processing when there are no subscribers 
+- not processing when context is paused
+- no notifications when value is unchanged
+
+---
+## Eventually Consistent
+
+<br/><br/><br/>
+<center><img src="/assets/img/signals/graph.svg" /></center>
+
+
+???
+- signals graph is guaranteed to be eventually consistent
+- at any given points signals can be in intermediate states which may not 'add up'
+- but eventually all values will align
+
+
+---
+# EventContext
 
 <br/>
 - corresponds to lifecycle context
@@ -87,28 +154,52 @@ are mostly interested in final state, after all changes are applied. This differ
   - fragment
   - view
 - every subscribe is done in some context (usually implicit)
-- subscribers will not be notified when context is not active
+- subscribers will only be notified when context is active
 - automatic unsubscribe when context is destroyed
 
 ---
-### Signal properties
+# Thread-safe API
 
 <br/>
-- subscribers will be notified with final value (eventually)
-- signal is allowed to skip intermediate states
-- signal is allowed to notify subscribers multiple times
-  - notify on subscribe
-  - notify on context resume
-- subscriber can specify its execution context
-- otherwise signal is processed synchronously
-- signal can be empty
-  - subscribers are not notified
-- signals graph is eventually consistent
-- signal api is thread safe
+```scala
+signal ! Value(...)
+```
+
+--
+
+```scala
+signal mutate (_ + 10) // atomic
+```
+
+--
+
+```scala
+signal.currentValue() : Option[T]
+```
+
+--
+
+```scala
+signal.on(Threading.Ui) { value => ... }
+```
+
+--
+
+```scala
+val fieldSignal = signal map (_.field)
+```
+
+--
+
+```scala
+val composedSignal = signal flatMap service.signalFromValue
+```
+
 
 ---
 class: center, middle
 # Case Study #
+
 
 ---
 # Ui Design #
@@ -118,18 +209,19 @@ class: center, middle
 --
 
 - Display current state, refresh on every change.
-  - Update when chapter is changed.
-  - Update when book info is changed (number of chapters).
-  - React to player state changes.
-- What if no chapter is selected?
-- What if book info is not loaded yet?
+  - update when song is changed.
+  - update when song info is changed (number of songs).
+  - react to player state changes.
+- What if no song is selected?
+- What if album info is not loaded yet?
 
 ---
 # PlaybackService #
 
+<br/><br/>
 ```scala
 trait PlaybackService {
-  // Currently played chapter  
+  // Currently played song  
   val currentSong: Signal[Uri]
 
   val playbackState: Signal[PlaybackState]
@@ -147,7 +239,7 @@ trait PlaybackService {
 
 ???
 
-Our UI needs service from which we can access book information, and control playback. 
+Our UI needs service from which we can access album information, and control playback. 
 
 In real world this would be couple different services,
 but for the sake of our example we will just define everything in single trait. 
@@ -157,6 +249,8 @@ Api will be using Signals, if you don't know what that is, check out my [previou
 ---
 # Quiz #
 
+<br/><br/>
+<br/><br/>
 ```scala
 class PlaybackView {
 
@@ -175,6 +269,7 @@ class PlaybackView {
 class: wide
 # Implementation #
 
+<br/>
 
 ```scala
 class PlaybackView(context: Context, attrs: AttributeSet, style: Int) 
@@ -245,7 +340,7 @@ songLabel.on(Threading.ui) { tvSong.setText }
 
 ---
 
-### Chapter duration
+### Song duration
 
 .center[![Playback control ui design](/assets/img/reactive_ui/duration.png)]
 
@@ -288,12 +383,13 @@ progress.on(Threading.ui) { pbProgress.setProgress }
 
 .center[![Playback control ui design](/assets/img/reactive_ui/buttons.png)]
 
-- some buttons need to be disabled
-- play button handles play and pause actions
-- execute action on click
+<br/><br/>
+
+- Some buttons need to be disabled
+- Play button handles play and pause actions
+- Execute actions on click
 
 ---
-class: wide
 ### Disable buttons
 
 ```scala
@@ -307,22 +403,28 @@ val indexInAlbum = for {
 
 ```scala
 val prevSong = indexInAlbum map { case (album, index) =>
-  if (index <= 0) None else Some(album.songs(index - 1))
+  if (index <= 0) None 
+  else Some(album.songs(index - 1))
 }
 ```
 --
 
 ```scala
 val nextSong = indexInAlbum map { case (album, index) =>
-  if (index >= album.songs.size - 1) None else Some(album.songs(index + 1))
+  if (index >= album.songs.size - 1) None 
+  else Some(album.songs(index + 1))
 }
 ```
 
 --
 
 ```scala
-prevSong.map(_.isDefined).on(Threading.ui) { btnPrevious.setEnabled }
-nextSong.map(_.isDefined).on(Threading.ui) { btnNext.setEnabled }
+prevSong.map(_.isDefined).on(Threading.ui) { 
+  btnPrevious.setEnabled 
+}
+nextSong.map(_.isDefined).on(Threading.ui) { 
+  btnNext.setEnabled 
+}
 ```
 
 ---
@@ -389,6 +491,8 @@ btnNext setOnClickListener { v: View =>
 ---
 ### Touch Helpers
 
+<br/><br/>
+
 ```scala
 val reactor = new TouchReactor(this)
 ```
@@ -410,27 +514,27 @@ def swipeDistance(startX: Float) =
 --
 
 ```scala
-def duration = 
-  currentChapter.currentValue.fold(0)(_.duration.toMillis)
+def duration = currentDuration.currentValue.fold(0)(_.toMillis)
 ```
 
 ---
 class: wide
-### Drag Gesture
+### Swipe Gesture
 
+<br/>
 ```scala
-val dragPosition: Signal[Option[Millis]] = {
+val swipePosition: Signal[Option[Millis]] = {
 
-  val dragStart = Signal(Option.empty[Float])
+  val swipeStart = Signal(Option.empty[Float])
 
-  dragGesture.onDragStart { case (x, _) => dragStart ! Some(x) }
+  dragGesture.onDragStart { case (x, _) => swipeStart ! Some(x) }
 
   dragGesture.onDragEnd { dragged =>
-    if (dragged) dragPosition.currentValue.flatten foreach service.seek
-    dragStart ! None
+    if (dragged) swipePosition.currentValue.flatten foreach service.seek
+    swipeStart ! None
   }
 
-  dragStart flatMap {
+  swipeStart flatMap {
     case None => Signal.const(Option.empty[Millis])
     case Some(startX) =>
       val startPos = currentPosition.currentValue.getOrElse(Millis(0))
@@ -442,6 +546,7 @@ val dragPosition: Signal[Option[Millis]] = {
 ---
 ### Update UI while swiping
 
+<br/><br/><br/>
 
 ```scala
 val positionSeconds = currentPosition.map(_.toSeconds)
@@ -454,7 +559,7 @@ positionSeconds
 --
 
 ```scala
-val positionSeconds = dragPosition flatMap {
+val positionSeconds = swipePosition flatMap {
   case Some(position) => Signal.const(position.toSeconds)
   case None           => currentPosition.map(_.toSeconds)
 }
@@ -462,11 +567,19 @@ val positionSeconds = dragPosition flatMap {
 
 ---
 class: center, middle
-# Demo
+<img src="/assets/img/signals/demo.png" />
+
+---
+class: center
+<img src="/assets/img/signals/github.png" />
+<br/><br/>
+<br/><br/>
+
+## https://github.com/zbsz/reactive-ui-sample
+
 
 
 ---
 class: center, middle
-# Thank you
+<img src="/assets/img/signals/thanks.jpg" />
 
-- https://github.com/zbsz/reactive-ui-sample

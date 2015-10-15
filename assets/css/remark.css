@@ -156,3 +156,6 @@ blockquote p {
 .bg-left-bottom {
     background-position: left bottom;
 }
+.bg-left-top {
+    background-position: left top;
+}
