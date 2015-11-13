@@ -8,8 +8,6 @@ class: middle
 [http://zbsz.github.io](http://zbsz.github.io)</br></br>
 
 
-.footnote[.right[2015.mobilization.pl]]
-
 ---
 ## It's not about: ##
 
@@ -198,11 +196,11 @@ val composedSignal = signal flatMap service.signalFromValue
 
 ---
 class: center, middle
-# Case Study #
+# Case Study
 
 
 ---
-# Ui Design #
+# Ui Design
 
 .center[![Playback control ui design](/assets/img/reactive_ui/player.png)]
 
@@ -576,6 +574,35 @@ class: center
 <br/><br/>
 
 ## https://github.com/zbsz/reactive-ui-sample
+
+
+---
+## Thoughts
+<br/>
+
+- Common pattern
+
+```scala
+val signal = ...
+
+signal.on(Threading.ui) { view.set... }
+```
+
+--
+
+- Test UI logic without views
+
+--
+
+- Why not RxJava?
+
+--
+
+- Other questions?
+
+--
+
+- Write your app in Scala, it works!
 
 
 

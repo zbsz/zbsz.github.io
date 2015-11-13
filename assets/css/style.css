@@ -32,11 +32,24 @@ html, body {
     font-size: 0.8em;
 }
 
+h1, h2, h3, h4, h5, h6 {
+    clear: both;
+}
+
 h2 a {
   color: inherit;
 }
 h2 a:hover {
   color: inherit;
+}
+
+.img-small {
+    width: 300px;
+}
+
+.right {
+    float: right;
+    margin: 10px;
 }
 
 /* tag_box ======================================================== */
